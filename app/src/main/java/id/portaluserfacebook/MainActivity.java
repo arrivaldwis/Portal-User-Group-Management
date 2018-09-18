@@ -16,6 +16,7 @@ import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
@@ -26,6 +27,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.Arrays;
+
+import id.portaluserfacebook.news.activity.ListNewsActivity;
 
 import static id.portaluserfacebook.App.callbackManager;
 
@@ -58,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         tvBirthday = findViewById(R.id.tvBirthday);
         imgUser = findViewById(R.id.img_user);
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList("public_profile", "user_friends", "email", "user_birthday"));
+        loginButton.setReadPermissions(Arrays.asList("public_profile", "email"));
 
         // Callback registration
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
@@ -82,20 +85,34 @@ public class MainActivity extends AppCompatActivity {
                                     String id = object.getString("id");
                                     String Name = object.getString("name");
                                     String FEmail = object.getString("email");
-                                    String birthday = object.getString("birthday");
                                     String image_url = "http://graph.facebook.com/" + id + "/picture?type=large";
                                     Log.v("Emailss = ", " " + imgUser);
                                     Picasso.get().load(image_url).into(imgUser);
                                     tvName.setText(Name);
-                                    tvGender.setVisibility(View.GONE);
-                                    tvBirthday.setText(birthday);
+                                    tvGender.setText(FEmail);
                                     llProfile.setVisibility(View.VISIBLE);
+
+                                    Intent intent = new Intent(MainActivity.this, ListNewsActivity.class);
+                                    startActivity(intent);
                                     Toast.makeText(getApplicationContext(), "Welcome!", Toast.LENGTH_LONG).show();
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
                             }
                         });
+
+                new GraphRequest(
+                        AccessToken.getCurrentAccessToken(),
+                        "/me/feed",
+                        null,
+                        HttpMethod.GET,
+                        new GraphRequest.Callback() {
+                            public void onCompleted(GraphResponse response) {
+                                /* handle the result */
+                                Log.v("Feed Response ", response.toString());
+                            }
+                        }
+                ).executeAsync();
 
                 Bundle parameters = new Bundle();
                 parameters.putString("fields", "id,name,email,gender,birthday");
@@ -116,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void isLogin() {
-        Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+        Intent intent = new Intent(MainActivity.this, ListNewsActivity.class);
         startActivity(intent);
         finish();
     }
