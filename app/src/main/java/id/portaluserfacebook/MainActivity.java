@@ -3,6 +3,7 @@ package id.portaluserfacebook;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +22,13 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
@@ -33,6 +41,7 @@ import id.portaluserfacebook.news.activity.ListNewsActivity;
 import static id.portaluserfacebook.App.callbackManager;
 
 public class MainActivity extends AppCompatActivity {
+    private static final int RC_SIGN_IN = 2 ;
     AccessToken accessToken = AccessToken.getCurrentAccessToken();
     boolean isLoggedIn = accessToken != null && !accessToken.isExpired();
     ImageView imgUser;
@@ -40,18 +49,48 @@ public class MainActivity extends AppCompatActivity {
     TextInputEditText tvName;
     TextInputEditText tvGender;
     TextInputEditText tvBirthday;
+    SignInButton signInButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        if(isLoggedIn) {
+        String[] perms = {
+                "android.permission.CAMERA",
+                "android.permission.WRITE_EXTERNAL_STORAGE",
+                "android.permission.RECORD_AUDIO",
+                "android.permission.READ_EXTERNAL_STORAGE",
+                "android.permission.ACCESS_NETWORK_STATE",
+                "android.permission.ACCESS_COARSE_LOCATION",
+                "android.permission.ACCESS_FINE_LOCATION"
+        };
+        int permsRequestCode = 200;
+
+        ActivityCompat.requestPermissions(this, perms, permsRequestCode);
+        loginGoogle();
+
+        if (isLoggedIn) {
             //goto main act
             isLogin();
         } else {
             setUI();
         }
+    }
+
+    GoogleSignInClient mGoogleSignInClient;
+
+    private void loginGoogle() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+    }
+
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     private void setUI() {
@@ -60,6 +99,14 @@ public class MainActivity extends AppCompatActivity {
         tvGender = findViewById(R.id.tvGender);
         tvBirthday = findViewById(R.id.tvBirthday);
         imgUser = findViewById(R.id.img_user);
+        signInButton = findViewById(R.id.sign_in_button);
+
+        signInButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                signIn();
+            }
+        });
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions(Arrays.asList("public_profile", "email"));
 
@@ -92,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                                     tvGender.setText(FEmail);
                                     llProfile.setVisibility(View.VISIBLE);
 
-                                    Intent intent = new Intent(MainActivity.this, ListNewsActivity.class);
+                                    Intent intent = new Intent(MainActivity.this, NavMenuActivity.class);
                                     startActivity(intent);
                                     Toast.makeText(getApplicationContext(), "Welcome!", Toast.LENGTH_LONG).show();
                                 } catch (JSONException e) {
@@ -133,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void isLogin() {
-        Intent intent = new Intent(MainActivity.this, ListNewsActivity.class);
+        Intent intent = new Intent(MainActivity.this, NavMenuActivity.class);
         startActivity(intent);
         finish();
     }
@@ -141,6 +188,34 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         callbackManager.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            // The Task returned from this call is always completed, no need to attach
+            // a listener.
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            handleSignInResult(task);
+        }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void handleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+
+            Picasso.get().load(account.getPhotoUrl()).into(imgUser);
+            tvName.setText(account.getDisplayName());
+            tvGender.setText(account.getEmail());
+            llProfile.setVisibility(View.VISIBLE);
+
+            Intent intent = new Intent(MainActivity.this, NavMenuActivity.class);
+            startActivity(intent);
+            Toast.makeText(getApplicationContext(), "Welcome!", Toast.LENGTH_LONG).show();
+            // Signed in successfully, show authenticated UI.
+            //updateUI(account);
+        } catch (ApiException e) {
+            // The ApiException status code indicates the detailed failure reason.
+            // Please refer to the GoogleSignInStatusCodes class reference for more information.
+            Log.w("", "signInResult:failed code=" + e.getStatusCode());
+            //updateUI(null);
+        }
     }
 }

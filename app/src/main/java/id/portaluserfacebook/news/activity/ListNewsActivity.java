@@ -2,12 +2,17 @@ package id.portaluserfacebook.news.activity;
 
 import android.app.Dialog;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -25,7 +30,7 @@ import id.portaluserfacebook.news.fragment.NewsFragment;
  * Created by arrival on 5/14/18.
  */
 
-public class ListNewsActivity extends AppCompatActivity {
+public class ListNewsActivity extends Fragment {
 
     @BindView(R.id.img_menu)
     ImageView img_menu;
@@ -38,15 +43,16 @@ public class ListNewsActivity extends AppCompatActivity {
     @BindView(R.id.tv_news)
     TextView tv_news;
 
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list_news);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.activity_list_news, container, false);
+        ButterKnife.bind(this, view);
         setUI();
+        return view;
     }
 
     private void setUI() {
-        ButterKnife.bind(this);
         setupViewPager(viewpager);
         tabLayout.setupWithViewPager(viewpager);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -68,7 +74,7 @@ public class ListNewsActivity extends AppCompatActivity {
     }
 
     private void setupViewPager(ViewPager viewPager) {
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getActivity().getSupportFragmentManager());
 
         for (String s: Constant.CATEGORY) {
             adapter.addFragment(NewsFragment.newInstance(s), s.toUpperCase());

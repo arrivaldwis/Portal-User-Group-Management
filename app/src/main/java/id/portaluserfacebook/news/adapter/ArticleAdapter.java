@@ -80,10 +80,9 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             public void onClick(View view) {
                 ActivityOptions options = null;
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    options = ActivityOptions.makeSceneTransitionAnimation((ListNewsActivity) context, view, "s");
                     Intent i = new Intent(context, DetailNewsActivity.class);
                     i.putExtra("article", article);
-                    context.startActivity(i, options.toBundle());
+                    context.startActivity(i);
                 }
             }
         });

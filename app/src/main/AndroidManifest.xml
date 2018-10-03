@@ -3,6 +3,10 @@
     package="id.portaluserfacebook">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".App"
@@ -40,12 +44,12 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-        <activity android:name=".HomeActivity"></activity>
+        <activity android:name=".HomeActivity" />
         <activity
-            android:name=".news.activity.ListNewsActivity"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
-        <activity android:name=".news.activity.DetailNewsActivity"
+            android:name=".news.activity.DetailNewsActivity" />
+        <activity
+            android:name=".NavMenuActivity"
+            android:label="@string/title_activity_nav_menu"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
